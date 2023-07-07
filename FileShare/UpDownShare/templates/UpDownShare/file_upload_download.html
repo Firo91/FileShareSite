@@ -1,0 +1,160 @@
+{% extends 'home.html' %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-4">
+    <h2>Create a Folder</h2>
+    <form method="post" action="{% url 'create_folder' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          {{ folder_form.name.label_tag }}
+          {{ folder_form.name }}
+          {{ folder_form.can_delete.label_tag }}
+          {{ folder_form.can_delete }}
+          <button type="submit" class="btn btn-primary">Create Folder</button>
+        </div>   
+      </form>
+  </div>
+
+  <div class="col-3">
+    <h2>Folders</h2>
+    <ul class="list-group">
+      {% for folder in folders %}
+        {% if folder.user == request.user or folder in request.user.shared_folders.all %}
+          <li class="list-group-item">
+            <div style="display: flex; align-items: center;">
+              <a href="{% url 'folder_view' folder.id %}" onclick="openFolderWindow('{% url 'folder_view' folder.id %}')" target="_blank" style="font-size: 20px;">{{ folder.name }}</a>
+              <form method="get" action="{% url 'share_folder' folder.id %}" style="display: inline; margin-left: 20px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm mr-2">Share</button>
+              </form>
+              <form action="{% url 'delete_item' 'folder' folder.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this folder?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
+              </form>
+            </div>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-4">
+    <h2>Upload a File</h2>
+    <form id="upload-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3">
+        {{ form.file.label_tag }}
+        {{ form.file }}
+        <progress id="file-upload-progress" value="0" max="100"></progress>
+        <button id="upload-button" type="submit" class="btn btn-primary">Upload</button>
+      </div>
+    </form>
+  </div>
+  
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  
+  <div class="col-4">
+    <h2>Uploaded Files Not in a Folder</h2>
+    <!-- List of uploaded files -->
+    <ul class="list-group">
+      {% for file in uploaded_files %}
+        {% if file.user == request.user or file in request.user.shared_files.all %}
+          {% if file.folder is null %}
+            <li class="list-group-item">
+              <a href="{% url 'file_download' file.id %}">{{ file.file.name }}</a> - Uploaded on {{ file.created_at }}
+            
+              <form method="post" action="{% url 'move_file' file.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <select name="folder" class="form-select">
+                    {% for folder in folders %}
+                      {% if folder.user == request.user or folder in request.user.shared_folders.all %}
+                        <option value="{{ folder.id }}">{{ folder.name }}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                </div>
+            <div style="display: flex;">
+                <button type="submit" class="btn btn-primary btn-sm mr-2">Move to Folder</button>
+              </form>
+              <form action="{% url 'delete_item' 'file' file.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this file?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Delete File</button>
+              </form>
+              <form method="get" action="{% url 'share_file' file.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm ml-2">Share</button>
+              </form>
+            </div>
+            </li>
+          {% endif %}
+        {% endif %}
+      {% empty %}
+        <li class="list-group-item">No files uploaded yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% if error_message %}
+<div class="alert alert-danger" role="alert">
+  {{ error_message }}
+</div>
+{% endif %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#upload-form').submit(function(event) {
+      event.preventDefault();
+
+      var form = $(this);
+      var formData = new FormData(form[0]);
+
+      $.ajax({
+        url: form.attr('action'),
+        type: form.attr('method'),
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhr: function() {
+          var xhr = new window.XMLHttpRequest();
+          xhr.upload.addEventListener('progress', function(evt) {
+            if (evt.lengthComputable) {
+              var percentComplete = (evt.loaded / evt.total) * 100;
+              $('#file-upload-progress').attr('value', percentComplete);
+            }
+          }, false);
+          return xhr;
+        },
+        success: function(response) {
+          console.log('File uploaded successfully!');
+          // Handle success if needed
+        },
+        error: function() {
+          console.error('File upload failed!');
+          // Handle error if needed
+        }
+      });
+    });
+  });
+
+  function openFolderWindow(url) {
+    var windowWidth = 500; // Specify the desired width of the new window
+    var windowHeight = 400; // Specify the desired height of the new window
+    var windowFeatures = 'width=' + windowWidth + ',height=' + windowHeight;
+    window.open(url, '_blank', windowFeatures);
+  }
+  
+</script>
+{% endblock %}

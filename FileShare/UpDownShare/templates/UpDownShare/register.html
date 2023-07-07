@@ -1,0 +1,28 @@
+{% extends 'home.html' %}
+
+{% block content %}
+  <h1>Create a new user</h1>
+  <p>
+    <b>Username:</b> As a username you can use the location and your first name, example "OSL Kim"<hr>
+    <b>Name:</b> Register your full name here.<hr>
+    
+    <form method="post" action="{% url 'register' %}">
+      {% csrf_token %}
+      <p>Username and Name:</p>
+      <input type="text" name="username" placeholder=" Enter a Username">
+      <input type="text" name="name" placeholder="Full name please"> <hr>
+      <p>Password:</p>
+      <input type="password" name="password1" placeholder=" Enter your Password">
+      <input type="password" name="password2" placeholder="Please confirm your Password">
+      <hr>
+      <b>Country:</b>
+      <select id="country-select" name="country"> 
+        <option value="">Please choose a country</option>
+        <option value="NO">Norway</option>
+        <option value="DK">Denmark</option>
+        <option value="SE">Sweden</option>
+        <option value="FI">Finland</option>
+      </select>
+      <button type="submit">Register</button>
+    </form>
+{% endblock %}

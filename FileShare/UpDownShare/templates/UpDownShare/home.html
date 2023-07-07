@@ -1,0 +1,70 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>File Share</title>
+    <!-- Bootstrap CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+      {% if request.path == '/' %}
+        <img src="{% static 'DALL·E 2023-06-23 14.59.02 - A green tiger sitting on a computer sharing files, digital art.png' %}" height="30" class="d-inline-block align-top mr-2 rounded" alt=""></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+      {% endif %}
+      {% if request.path != '/' %}
+        <a class="navbar-brand" href="{% url 'logout' %}">
+          <img src="{% static 'DALL·E 2023-06-23 14.59.02 - A green tiger sitting on a computer sharing files, digital art.png' %}" height="30" class="d-inline-block align-top mr-2 rounded" alt="">
+        </a>
+      {% endif %}
+      {% block navbar%}
+
+      {% endblock %}
+      {% if user.is_authenticated and request.path == '/files/' %}      
+            <!-- Button visible to logged-in users -->
+            <a class="nav-link activa" aria-current="page" href="{% url 'logout' %}">Logout</a>
+            <a class="nav-link activa" aria-current="page" href="{% url 'change_password' %}">Change Password</a>
+      
+      {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  {% if request.path == '/' %}
+    <div class="container">
+        <div>
+          <div>
+            <img src="{% static 'DALL·E 2023-06-23 14.59.02 - A green tiger sitting on a computer sharing files, digital art.png' %}" class="rounded mx-auto d-block" style="max-width: 900px; max-height: 500px;">
+          </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+              <div class="jumbotron mt-3">
+                <h1 class="display-4">Access to Green TigerShare</h1>
+                <p class="lead">
+                    <hr>Here you can login or if you are new to the site you can register <hr> If there are any issues with the page itself, contact Kim-Andre Kopperud.
+                </p>
+                <hr class="my-4">
+                <a class="btn btn-primary btn-lg" href="login" role="button">Press here to login</a>
+                <a class="btn btn-primary btn-lg" href="register" role="button">Press here to register</a>
+              </div>
+            </div>
+          </div>
+      </div>
+  {% endif %}
+    {% block content%}
+    {% endblock%}
+    <!-- Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>
+

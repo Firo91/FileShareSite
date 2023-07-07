@@ -1,0 +1,17 @@
+{% extends 'home.html' %}
+
+{% block content %}
+  <h1>Login to access Fileshares</h1>
+  {% if error_message %}
+    <p>{{ error_message }}</p>
+  {% endif %}
+  <form method="post" action="{% url 'custom_login' %}">
+    {% csrf_token %}
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <button type="submit" class="btn btn-primary">Login</button> 
+    <a class="btn btn-danger " href="reset_password" role="button">Reset password</a>
+  </form>
+{% endblock %}
