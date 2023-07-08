@@ -32,7 +32,7 @@ else:
 
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
-
+CSRF_TRUSTED_ORIGINS = env.list('DJANGO_CSRF_TRUSTED_ORIGINS', default=[])
 # Application definition
 
 INSTALLED_APPS = [
