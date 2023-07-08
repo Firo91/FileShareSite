@@ -21,7 +21,7 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-DEBUG = env.bool('DJANGO_DEBUG', default=False)
+DEBUG = env.bool('DJANGO_DEBUG', default=True)
 
 # Allowed Hosts Definition
 if DEBUG:
