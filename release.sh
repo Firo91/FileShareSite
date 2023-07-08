@@ -3,4 +3,4 @@
 cd FileShare/
 # Execute your command
 
-python manage.py runserver
+python manage.py migrate
