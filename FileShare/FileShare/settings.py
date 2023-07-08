@@ -34,6 +34,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 CSRF_TRUSTED_ORIGINS = env.list('DJANGO_CSRF_TRUSTED_ORIGINS', default=[])
 
+DEFAULT_FILE_STORAGE = 'FileShare.storages.PublicMediaStorage'
 MEDIA_S3_ACCESS_KEY_ID = env('MEDIA_S3_ACCESS_KEY_ID', default=None)
 MEDIA_S3_SECRET_ACCESS_KEY = env('MEDIA_S3_SECRET_ACCESS_KEY', default=None)
 MEDIA_S3_BUCKET_NAME=env('MEDIA_S3_BUCKET_NAME', default=None)
@@ -133,9 +134,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
-STORAGES = {"default": {"BACKEND": "FileShare.storages.PublicMediaStorage"}}
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
