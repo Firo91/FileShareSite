@@ -33,6 +33,11 @@ else:
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 CSRF_TRUSTED_ORIGINS = env.list('DJANGO_CSRF_TRUSTED_ORIGINS', default=[])
+
+MEDIA_S3_ACCESS_KEY_ID = env('MEDIA_S3_ACCESS_KEY_ID', default=None)
+MEDIA_S3_SECRET_ACCESS_KEY = env('MEDIA_S3_SECRET_ACCESS_KEY', default=None)
+MEDIA_S3_BUCKET_NAME=env('MEDIA_S3_BUCKET_NAME', default=None)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -124,6 +129,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+STORAGES = {"default": {"BACKEND": "FileShare.storages.PublicMediaStorage"}}
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -132,8 +139,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
+MEDIA_HOST=f'{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com'
+MEDIA_URL=f'https://{MEDIA_HOST}/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
