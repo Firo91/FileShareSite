@@ -141,7 +141,7 @@ USE_TZ = True
 
 STATIC_ROOT = 'static'
 STATIC_HOST=f'{STATIC_S3_BUCKET_NAME}.s3.amazonaws.com'
-STATIC_URL=f'https://{STATIC_HOST}/'
+STATIC_URL=f'https://{STATIC_HOST}/static/'
 
 MEDIA_ROOT = 'media'
 MEDIA_HOST=f'{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com'
