@@ -144,7 +144,13 @@ STATIC_HOST=f'{STATIC_S3_BUCKET_NAME}.s3.amazonaws.com'
 STATIC_URL=f'https://{STATIC_HOST}/static/'
 
 MEDIA_ROOT = 'media'
+MEDIA_URL=f'https://{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com/'
 MEDIA_HOST=f'{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com'
+CUSTOM_MEDIA_HOST = env('CUSTOM_MEDIA_DOMAIN', default=None)
+
+if CUSTOM_MEDIA_DOMAIN:
+    MEDIA_HOST = CUSTOM_MEDIA_DOMAIN
+
 MEDIA_URL=f'https://{MEDIA_HOST}/'
 
 # Default primary key field type
