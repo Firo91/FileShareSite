@@ -9,6 +9,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import  login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
 import random
 import string
 from django.contrib import messages
@@ -104,6 +105,7 @@ def file_download(request, file_id):
 
     return response
 
+@csrf_exempt
 def register_user(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
