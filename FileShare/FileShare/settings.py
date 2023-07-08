@@ -38,6 +38,10 @@ MEDIA_S3_ACCESS_KEY_ID = env('MEDIA_S3_ACCESS_KEY_ID', default=None)
 MEDIA_S3_SECRET_ACCESS_KEY = env('MEDIA_S3_SECRET_ACCESS_KEY', default=None)
 MEDIA_S3_BUCKET_NAME=env('MEDIA_S3_BUCKET_NAME', default=None)
 
+STATIC_S3_ACCESS_KEY_ID = env('STATIC_S3_ACCESS_KEY_ID', default=None)
+STATIC_S3_SECRET_ACCESS_KEY = env('STATIC_S3_SECRET_ACCESS_KEY', default=None)
+STATIC_S3_BUCKET_NAME=env('STATIC_S3_BUCKET_NAME', default=None)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -135,10 +139,11 @@ STORAGES = {"default": {"BACKEND": "FileShare.storages.PublicMediaStorage"}}
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
+
+STATIC_ROOT = 'static'
+STATIC_HOST=f'{STATIC_S3_BUCKET_NAME}.s3.amazonaws.com'
+STATIC_URL=f'https://{STATIC_HOST}/'
+
 MEDIA_ROOT = 'media'
 MEDIA_HOST=f'{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com'
 MEDIA_URL=f'https://{MEDIA_HOST}/'
