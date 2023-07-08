@@ -11,3 +11,10 @@ class PublicMediaStorage(S3Boto3Storage):
     bucket_name = settings.MEDIA_S3_BUCKET_NAME
         custom_domain = settings.MEDIA_HOST
         querystring_auth = False
+    
+class StaticStorage(S3Boto3Storage):
+    location = 'static'
+    default_acl = 'public-read'
+    access_key = settings.STATIC_S3_ACCESS_KEY_ID
+    secret_key = settings.STATIC_S3_SECRET_ACCESS_KEY
+    bucket_name = settings.STATIC_S3_BUCKET_NAME
