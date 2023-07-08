@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Change to the desired directory
-cd /FileShare/
+cd FileShareSite/FileShare/
 
 # Execute your command
 python manage.py migrate
