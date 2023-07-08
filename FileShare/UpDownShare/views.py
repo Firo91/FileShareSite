@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 def home(request):
     return render(request, 'home.html')
 
+@csrf_exempt
 @login_required
 def file_upload_download(request):
     if request.method == 'POST':
@@ -132,6 +133,7 @@ def register_user(request):
     
     return render(request, 'register.html', {'form': form})
 
+@csrf_exempt
 def custom_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -157,6 +159,7 @@ def custom_logout(request):
     logout(request)
     return redirect('home')
 
+@csrf_exempt
 def reset_password(request):
     if request.method == 'POST':
         form = CustomPasswordResetForm(request.POST)
@@ -187,6 +190,7 @@ def reset_password(request):
     return render(request, 'reset_password.html', {'form': form})
 
 @login_required
+@csrf_exempt
 def folder_view(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
     files = folder.file_set.all()
@@ -198,6 +202,7 @@ def folder_view(request, folder_id):
 
     return render(request, 'folder_view.html', context)
 
+@csrf_exempt
 def change_password(request):
     if request.method == 'POST':
         form = PasswordChangeForm(user=request.user, data=request.POST)
