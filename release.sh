@@ -4,4 +4,4 @@
 cd FileShareSite/FileShare/
 
 # Execute your command
-python manage.py migrate
+manage.py migrate
