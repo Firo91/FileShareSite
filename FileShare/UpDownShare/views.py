@@ -99,11 +99,9 @@ def folder_hierarchy_path(folder):
 @login_required
 def file_download(request, file_id):
     uploaded_file = get_object_or_404(File, id=file_id, user=request.user)
-    file_path = uploaded_file.file.path.replace('main', uploaded_file.folder.folder_path(), 1)
-    file_name = uploaded_file.file.name.split('/')[-1]
-
-    response = FileResponse(open(file_path, 'rb'), as_attachment=True, filename=file_name)
-
+    uploaded_file_file = uploaded_file.file
+    file_name = uploaded_file_file.name.split('/')[-1]
+    response = FileResponse(uploaded_file_file.open(), as_attachment=True, filename=file_name)
     return response
 
 @csrf_exempt
