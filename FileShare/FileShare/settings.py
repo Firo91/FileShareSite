@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -66,6 +67,12 @@ MIDDLEWARE = [
 AUTH_USER_MODEL = 'UpDownShare.CustomUser'
 
 ROOT_URLCONF = 'FileShare.urls'
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://ccterminals.applikuapp.com/', 'http://ccterminals.applikuapp.com/'
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 TEMPLATES = [
     {
@@ -130,11 +137,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-
-STATIC_ROOT = 'static'
-STATIC_HOST = f'{STATIC_S3_BUCKET_NAME}.s3.amazonaws.com'
-STATIC_URL = f'https://{STATIC_HOST}/static/'
 
 MEDIA_ROOT = 'media'
 MEDIA_URL = f'https://{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com/'
