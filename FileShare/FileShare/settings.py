@@ -143,6 +143,12 @@ MEDIA_URL = f'https://{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com/'
 MEDIA_HOST = f'{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com'
 CUSTOM_MEDIA_DOMAIN = env('CUSTOM_MEDIA_DOMAIN', default=None)
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
 if CUSTOM_MEDIA_DOMAIN:
     MEDIA_HOST = CUSTOM_MEDIA_DOMAIN
 
