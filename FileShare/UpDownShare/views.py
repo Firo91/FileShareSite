@@ -217,6 +217,7 @@ def change_password(request):
         form = PasswordChangeForm(user=request.user)
     return render(request, 'change_password.html', {'form': form})
 
+@csrf_exempt
 def delete_item(request, item_type, item_id):
     if item_type == 'file':
         file = get_object_or_404(File, pk=item_id)
@@ -247,6 +248,7 @@ def delete_item(request, item_type, item_id):
         folder.delete()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
+@csrf_exempt
 def share_folder(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
     if request.method == 'POST':
@@ -261,6 +263,7 @@ def share_folder(request, folder_id):
     users = CustomUser.objects.all()
     return render(request, 'share_folder.html', {'folder': folder, 'users': users})
 
+@csrf_exempt
 def share_file(request, file_id):
     file = get_object_or_404(File, id=file_id)
     if request.method == 'POST':
@@ -275,6 +278,7 @@ def share_file(request, file_id):
     users = CustomUser.objects.all()
     return render(request, 'share_file.html', {'file': file, 'users': users})
 
+@csrf_exempt
 def create_folder(request):
     if request.method == 'POST':
         folder_form = FolderForm(request.POST)
