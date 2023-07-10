@@ -20,7 +20,6 @@ env = environ.Env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 DEBUG = env.bool('DJANGO_DEBUG', default=True)
 
 # Allowed Hosts Definition
@@ -37,12 +36,12 @@ CSRF_TRUSTED_ORIGINS = env.list('DJANGO_CSRF_TRUSTED_ORIGINS', default=[])
 DEFAULT_FILE_STORAGE = 'FileShare.storages.PublicMediaStorage'
 MEDIA_S3_ACCESS_KEY_ID = env('MEDIA_S3_ACCESS_KEY_ID', default=None)
 MEDIA_S3_SECRET_ACCESS_KEY = env('MEDIA_S3_SECRET_ACCESS_KEY', default=None)
-MEDIA_S3_BUCKET_NAME=env('MEDIA_S3_BUCKET_NAME', default=None)
+MEDIA_S3_BUCKET_NAME = env('MEDIA_S3_BUCKET_NAME', default=None)
 
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 STATIC_S3_ACCESS_KEY_ID = env('STATIC_S3_ACCESS_KEY_ID', default=None)
 STATIC_S3_SECRET_ACCESS_KEY = env('STATIC_S3_SECRET_ACCESS_KEY', default=None)
-STATIC_S3_BUCKET_NAME=env('STATIC_S3_BUCKET_NAME', default=None)
+STATIC_S3_BUCKET_NAME = env('STATIC_S3_BUCKET_NAME', default=None)
 
 # Application definition
 
@@ -73,7 +72,7 @@ ROOT_URLCONF = 'FileShare.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'UpDownShare'/ 'templates' / 'UpDownShare' ],
+        'DIRS': [BASE_DIR / 'UpDownShare' / 'templates' / 'UpDownShare'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -88,7 +87,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'FileShare.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -98,8 +96,6 @@ DATABASES = {
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -123,7 +119,6 @@ SESSION_COOKIE_AGE = 900  # 30 minutes in seconds
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -140,20 +135,30 @@ USE_TZ = True
 
 
 STATIC_ROOT = 'static'
-STATIC_HOST=f'{STATIC_S3_BUCKET_NAME}.s3.amazonaws.com'
-STATIC_URL=f'https://{STATIC_HOST}/static/'
+STATIC_HOST = f'{STATIC_S3_BUCKET_NAME}.s3.amazonaws.com'
+STATIC_URL = f'https://{STATIC_HOST}/static/'
 
 MEDIA_ROOT = 'media'
-MEDIA_URL=f'https://{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com/'
-MEDIA_HOST=f'{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com'
-CUSTOM_MEDIA_HOST = env('CUSTOM_MEDIA_DOMAIN', default=None)
+MEDIA_URL = f'https://{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com/'
+MEDIA_HOST = f'{MEDIA_S3_BUCKET_NAME}.s3.amazonaws.com'
+CUSTOM_MEDIA_DOMAIN = env('CUSTOM_MEDIA_DOMAIN', default=None)
 
 if CUSTOM_MEDIA_DOMAIN:
     MEDIA_HOST = CUSTOM_MEDIA_DOMAIN
 
-MEDIA_URL=f'https://{MEDIA_HOST}/'
+MEDIA_URL = f'https://{MEDIA_HOST}/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+STORAGES = {
+    "default": {
+        "BACKEND": 'equipment_log.storages.PublicMediaStorage',
+    },
+    "staticfiles": {
+        "BACKEND": 'equipment_log.storages.StaticStorage',
+    }
+}
+
+WHITENOISE_USE_FINDERS = True
