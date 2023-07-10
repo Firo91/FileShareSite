@@ -152,10 +152,10 @@ MEDIA_URL = f'https://{MEDIA_HOST}/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STORAGES = {
     "default": {
-        "BACKEND": 'equipment_log.storages.PublicMediaStorage',
+        "BACKEND": 'FileShare.storages.PublicMediaStorage',
     },
     "staticfiles": {
-        "BACKEND": 'equipment_log.storages.StaticStorage',
+        "BACKEND": 'FileShare.storages.StaticStorage',
     }
 }
 
