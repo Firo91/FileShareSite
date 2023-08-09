@@ -261,35 +261,47 @@ def share_folder(request, folder_id):
     users = CustomUser.objects.all()
     return render(request, 'share_folder.html', {'folder': folder, 'users': users})
 
-@csrf_exempt
+@login_required
 def share_file(request, file_id):
     file = get_object_or_404(File, id=file_id)
+
+    # Security check to ensure the requester is the owner of the file
+    if file.user != request.user:
+        messages.error(request, "You don't have permission to share this file.")
+        return redirect('file_upload_download')  # Redirect to the main page or an appropriate page
+
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         user = get_object_or_404(CustomUser, id=user_id)
-        relationship = FileUserRelationship.objects.create(
-            file=file,
-            user=user,
-        )
-        # Handle success and redirect
+
+        # Check if this file is already shared with this user
+        if not FileUserRelationship.objects.filter(file=file, user=user).exists():
+            FileUserRelationship.objects.create(file=file, user=user)
+            messages.success(request, f"File shared with {user.username}.")
+        else:
+            messages.warning(request, f"File is already shared with {user.username}.")
 
     users = CustomUser.objects.all()
-    return render(request, 'share_file.html', {'file': file, 'users': users})
 
-@csrf_exempt
+    # Get the list of users the file is already shared with
+    shared_with = file.fileuserrelationship_set.all().values_list('user__username', flat=True)
+
+    context = {
+        'file': file,
+        'users': users,
+        'shared_with': shared_with
+    }
+
+    return render(request, 'share_file.html', context)
+
+@login_required
 def create_folder(request):
     if request.method == 'POST':
         folder_form = FolderForm(request.POST)
         if folder_form.is_valid():
             folder = folder_form.save(commit=False)
             folder.user = request.user
-
-            # Create the folder on the file system
-            folder_path = os.path.join(settings.MEDIA_ROOT, folder.folder_path())
-            os.makedirs(folder_path, exist_ok=True)
-
             folder.save()
-
             return redirect('folder_view', folder_id=folder.id)
     else:
         folder_form = FolderForm()
