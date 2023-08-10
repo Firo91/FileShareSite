@@ -76,7 +76,7 @@
               <form method="post" action="{% url 'move_file' file.id %}">
                 {% csrf_token %}
                 <div class="mb-3">
-                  <select name="folder" class="form-select">
+                  <select name="folder_id" class="form-select">
                     {% for folder in folders %}
                       {% if folder.user == request.user or folder in request.user.shared_folders.all %}
                         <option value="{{ folder.id }}">{{ folder.name }}</option>
