@@ -10,6 +10,7 @@ from django.contrib.auth import  login, authenticate, logout, update_session_aut
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 import random
 import string
 from django.contrib import messages
@@ -189,16 +190,36 @@ def reset_password(request):
 
 @login_required
 @csrf_exempt
-def folder_view(request, folder_id):
+def folder_view(request, folder_id, page=1):
     folder = get_object_or_404(Folder, id=folder_id)
+    
+    # Permission check: Only owner or shared users can access the folder
+    if folder.user != request.user and not FolderUserRelationship.objects.filter(folder=folder, user=request.user).exists():
+        messages.error(request, "You do not have permission to view this folder.")
+        return redirect('some_default_view')  # or wherever you want to redirect to
+
     files = folder.file_set.all()
+
+    # Breadcrumb
+    breadcrumb = get_breadcrumb(folder)
+
+    # Pagination
+    files_per_page = 10
+    paginator = Paginator(files, files_per_page)
+    current_page = paginator.get_page(page)
 
     context = {
         'folder': folder,
-        'files': files
+        'breadcrumb': breadcrumb,
+        'current_page': current_page
     }
 
     return render(request, 'folder_view.html', context)
+
+def get_breadcrumb(folder):
+    if not folder.parent:
+        return [folder]
+    return get_breadcrumb(folder.parent) + [folder]
 
 @csrf_exempt
 def change_password(request):
@@ -217,49 +238,65 @@ def change_password(request):
 
 @csrf_exempt
 def delete_item(request, item_type, item_id):
-    if item_type == 'file':
-        file = get_object_or_404(File, pk=item_id)
-
-
-        file_path = os.path.join(settings.MEDIA_ROOT, file.file.name)
-        if default_storage.exists(file_path):
-            default_storage.delete(file_path)
-        file.delete()
-
-    if item_type == 'folder':
-        folder = get_object_or_404(Folder, pk=item_id)
-        folder_path = os.path.join(settings.MEDIA_ROOT, folder.name)
-
-        # Delete the associated files within the folder
-        for file in folder.file_set.all():
+    try:
+        if item_type == 'file':
+            file = get_object_or_404(File, pk=item_id)
             file_path = os.path.join(settings.MEDIA_ROOT, file.file.name)
             if default_storage.exists(file_path):
                 default_storage.delete(file_path)
+            file.delete()
+            messages.success(request, "File deleted successfully.")
 
-        # Delete the folder and its contents
-        if os.path.exists(folder_path):
-            logger.info("Folder Path: %s", folder_path)  # Add this line to log the folder path
-            shutil.rmtree(folder_path)
+        elif item_type == 'folder':
+            folder = get_object_or_404(Folder, pk=item_id)
 
+            # Delete the associated files within the folder
+            for file in folder.file_set.all():
+                file_path = os.path.join(settings.MEDIA_ROOT, file.file.name)
+                if default_storage.exists(file_path):
+                    default_storage.delete(file_path)
             
-
-        folder.delete()
+            folder.delete()
+            messages.success(request, "Folder deleted successfully.")
+        else:
+            messages.error(request, "Invalid item type provided.")
+    except Exception as e:
+        logger.error("Error during deletion: %s", str(e))
+        messages.error(request, "An error occurred while trying to delete the item.")
+        
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 @csrf_exempt
 def share_folder(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
+
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         user = get_object_or_404(CustomUser, id=user_id)
-        relationship = FolderUserRelationship.objects.create(
-            folder=folder,
-            user=user,
-        )
-        # Handle success and redirect
+
+        # Check if folder is already shared with this user
+        if FolderUserRelationship.objects.filter(folder=folder, user=user).exists():
+            messages.warning(request, f"Folder is already shared with {user.username}")
+        else:
+            relationship = FolderUserRelationship.objects.create(
+                folder=folder,
+                user=user,
+            )
+            messages.success(request, f"Folder successfully shared with {user.username}")
+
+        return redirect('share_folder', folder_id=folder_id) # Redirecting to the same view to see the messages
 
     users = CustomUser.objects.all()
-    return render(request, 'share_folder.html', {'folder': folder, 'users': users})
+
+    # Get the list of users the folder is already shared with
+    shared_with = [relation.user.username for relation in FolderUserRelationship.objects.filter(folder=folder)]
+
+    context = {
+        'folder': folder,
+        'users': users,
+        'shared_with': shared_with
+    }
+    return render(request, 'share_folder.html', context)
 
 @login_required
 def share_file(request, file_id):
