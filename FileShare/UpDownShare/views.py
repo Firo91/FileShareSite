@@ -59,35 +59,25 @@ def file_upload_download(request):
 
 
 def move_file(request, file_id):
-    file = get_object_or_404(File, pk=file_id)
+    file_instance = get_object_or_404(File, id=file_id)
 
     if request.method == 'POST':
-        folder_id = request.POST.get('folder')
-        folder = get_object_or_404(Folder, id=folder_id)
+        new_folder_id = request.POST.get('folder_id')  # Assuming you send the desired folder's ID in POST data
+        new_folder = get_object_or_404(Folder, id=new_folder_id)
 
-        # Get the current file path
-        current_path = file.file.path
+        # You can add any necessary permission checks here. E.g.:
+        # - Check if the user has the right to move the file
+        # - Check if the user has the right to put files in the destination folder
 
-        # Get the file name and extension
-        file_name = os.path.basename(current_path)
+        file_instance.folder = new_folder  # Update the file's folder reference
+        file_instance.save()
 
-        # Generate the new file path based on the target folder's hierarchy
-        new_folder_path = os.path.join(settings.MEDIA_ROOT, folder.folder_path())
-        new_path = os.path.join(new_folder_path, file_name)
+        # Redirect to the folder view or wherever you want after a successful move
+        return redirect('folder_view', folder_id=new_folder.id)
 
-        # Create the destination folder if it doesn't exist
-        os.makedirs(new_folder_path, exist_ok=True)
-
-        # Move the file on the file system
-        shutil.move(current_path, new_path)
-
-        # Update the file's folder field in the database
-        file.folder = folder
-        file.save()
-
-        return redirect('file_upload_download')
-    else:
-        return HttpResponseNotAllowed(['POST'])
+    # If GET request, you can render a page where the user chooses the destination folder.
+    folders = Folder.objects.filter(user=request.user)  # Show only folders belonging to the user
+    return render(request, 'move_file.html', {'file': file_instance, 'folders': folders})
 
 def folder_hierarchy_path(folder):
     # Recursively traverse the folder hierarchy to determine the path
