@@ -96,8 +96,9 @@ WSGI_APPLICATION = 'FileShare.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Databases
+
 DATABASES = {
-    "default": env.db("DATABASE_URL")
+   "default": env.db("DATABASE_URL")
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
