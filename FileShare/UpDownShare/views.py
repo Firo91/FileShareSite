@@ -25,6 +25,9 @@ def home(request):
 @csrf_exempt
 @login_required
 def file_upload_download(request):
+    file = None  # Initialize file to None
+    file_user_relationship = None  # Initialize this to None as well
+
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         folder_form = FolderForm(request.POST)
@@ -47,9 +50,9 @@ def file_upload_download(request):
 
     uploaded_files = File.objects.all()
     folders = Folder.objects.all()
-    
-    file_user_relationship = None
-    if file.fileuserrelationship_set.filter(user=request.user).exists():
+
+    # Only try to access file attributes if file exists
+    if file and file.fileuserrelationship_set.filter(user=request.user).exists():
         file_user_relationship = file.fileuserrelationship_set.get(user=request.user)
 
     context = {
