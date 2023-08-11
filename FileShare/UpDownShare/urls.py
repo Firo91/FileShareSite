@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
-from .views import create_folder, delete_item ,file_upload_download,change_password, file_download, register_user, home, custom_login, custom_logout, reset_password, folder_view, move_file, share_folder, share_file
+from .views import create_folder, delete_item ,file_upload_download,change_password, file_download, register_user, home, custom_login, custom_logout, reset_password, folder_view, move_file, share_folder, share_file, remove_shared_link
 
 urlpatterns = [
     path('', home, name='home'),
@@ -20,5 +20,6 @@ urlpatterns = [
     path('folder/<int:folder_id>/share/', share_folder, name='share_folder'),
     path('file/<int:file_id>/share/', share_file, name='share_file'),
     path('create_folder/', create_folder, name='create_folder'),
+    path('remove_shared_link/<int:folder_id>', remove_shared_link, name='remove_shared_link')
     # ...
 ]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
