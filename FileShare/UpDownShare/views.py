@@ -4,7 +4,7 @@ from django.core.files.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import FileUploadForm, CustomUserCreationForm, CustomPasswordResetForm, FolderUserRelationshipForm, FolderForm
 from .models import File, CustomUser, FileUserRelationship, Folder, FolderUserRelationship
-from django.http import FileResponse, HttpResponseNotAllowed, HttpResponse, HttpResponseRedirect
+from django.http import FileResponse, HttpResponseNotAllowed, HttpResponse, HttpResponseRedirect, Http404
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import  login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -89,7 +89,20 @@ def folder_hierarchy_path(folder):
 
 @login_required
 def file_download(request, file_id):
-    uploaded_file = get_object_or_404(File, id=file_id, user=request.user)
+    # Firstly, just get the file without checking the user
+    uploaded_file = get_object_or_404(File, id=file_id)
+    
+    # Check if the file belongs to the current user
+    if uploaded_file.user == request.user:
+        pass
+    # Else, check if the file is inside a shared folder
+    elif uploaded_file.folder and FolderUserRelationship.objects.filter(folder=uploaded_file.folder, user=request.user).exists():
+        pass
+    else:
+        # If neither conditions are met, raise a 404
+        raise Http404("File not found or you don't have the permission to download it.")
+
+    # Continue the download process
     uploaded_file_file = uploaded_file.file
     file_name = uploaded_file_file.name.split('/')[-1]
     response = FileResponse(uploaded_file_file.open(), as_attachment=True, filename=file_name)
