@@ -199,8 +199,7 @@ def folder_view(request, folder_id, page=1):
     # Permission check: Only owner or shared users can access the folder
     if folder.user != request.user and not FolderUserRelationship.objects.filter(folder=folder, user=request.user).exists():
         messages.error(request, "You do not have permission to view this folder.")
-        return redirect('some_default_view')  # or wherever you want to redirect to
-
+        return redirect('file_upload_download')
     files = folder.file_set.all()
 
     # Breadcrumb
