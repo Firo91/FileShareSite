@@ -205,11 +205,21 @@ def reset_password(request):
 def folder_view(request, folder_id, page=1):
     folder = get_object_or_404(Folder, id=folder_id)
     
-    # Permission check: Only owner or shared users can access the folder
+    # Permission check
     if folder.user != request.user and not FolderUserRelationship.objects.filter(folder=folder, user=request.user).exists():
         messages.error(request, "You do not have permission to view this folder.")
         return redirect('file_upload_download')
+    
     files = folder.file_set.all()
+
+    # Get the FileUserRelationship objects for each file for the current user
+    file_relations = {}
+    for file in files:
+        try:
+            relation = file.fileuserrelationship_set.get(user=request.user)
+            file_relations[file.id] = relation
+        except FileUserRelationship.DoesNotExist:
+            file_relations[file.id] = None
 
     # Breadcrumb
     breadcrumb = get_breadcrumb(folder)
@@ -222,10 +232,12 @@ def folder_view(request, folder_id, page=1):
     context = {
         'folder': folder,
         'breadcrumb': breadcrumb,
-        'current_page': current_page
+        'current_page': current_page,
+        'file_relations': file_relations  # Passing the relationships to the template
     }
 
     return render(request, 'folder_view.html', context)
+
 
 def get_breadcrumb(folder):
     if not folder.parent:
