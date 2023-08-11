@@ -48,6 +48,7 @@ class FileUserRelationship(models.Model):
     file = models.ForeignKey(File, on_delete=models.CASCADE)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     shared_at = models.DateField(auto_now_add=True)
+    can_delete = models.BooleanField(default=False)  # New field
 
     def __str__(self):
         return f'{self.file} shared with {self.user}'

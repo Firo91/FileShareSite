@@ -313,9 +313,11 @@ def share_file(request, file_id):
         user_id = request.POST.get('user_id')
         user = get_object_or_404(CustomUser, id=user_id)
 
+        can_delete = request.POST.get('can_delete') == "true"  # Retrieve the can_delete status from the POST data
+
         # Check if this file is already shared with this user
         if not FileUserRelationship.objects.filter(file=file, user=user).exists():
-            FileUserRelationship.objects.create(file=file, user=user)
+            FileUserRelationship.objects.create(file=file, user=user, can_delete=can_delete)  # Pass can_delete here
             messages.success(request, f"File shared with {user.username}.")
         else:
             messages.warning(request, f"File is already shared with {user.username}.")
@@ -359,4 +361,18 @@ def remove_shared_link(request, folder_id):
     else:
         messages.error(request, "This folder is not shared with you!")
 
-    return redirect('folder_view', folder_id=folder_id)
+    return redirect('file_upload_download')
+
+def delete_shared_file(request, file_id):
+    file= get_object_or_404(File, id=file_id)
+    
+    # Check if the user is actually a shared user for this file
+    relationship = FileUserRelationship.objects.filter(file=file, user=request.user).first()
+
+    if relationship:
+        relationship.delete()  # This will remove only the sharing relationship, not the file itself
+        messages.success(request, "Shared file removed successfully from your view.")
+    else:
+        messages.error(request, "This file is not shared with you!")
+    
+    return redirect('file_upload_download')

@@ -22,6 +22,9 @@
     </select>
     <br>
 
+    <button id="toggleDelete" class="btn btn-danger" onclick="toggleDeletePermission()">Cannot Delete</button>
+    <input type="hidden" id="canDeleteInput" name="can_delete" value="false">
+
     <!-- Show list of users the file is already shared with -->
     <h3>File is already shared with:</h3>
     <ul>
@@ -34,4 +37,21 @@
 
     <button type="submit">Share</button>
 </form>
+
+<script>
+function toggleDeletePermission() {
+    const button = document.getElementById("toggleDelete");
+    const input = document.getElementById("canDeleteInput");
+
+    if (button.textContent === "Cannot Delete") {
+        button.textContent = "Can Delete";
+        button.className = "btn btn-success";  // Change color to green
+        input.value = "true";                  // Update hidden input's value
+    } else {
+        button.textContent = "Cannot Delete";
+        button.className = "btn btn-danger";   // Change color back to red
+        input.value = "false";                 // Update hidden input's value
+    }
+}
+</script>
 {% endblock %}

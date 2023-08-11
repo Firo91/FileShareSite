@@ -22,13 +22,21 @@
         <a href="{% url 'file_download' file.id %}" class="text-primary">{{ file.file.name }}</a> 
         <span class="text-muted ml-2">- Uploaded on {{ file.created_at }}</span>
         
-        <!-- Check if the logged-in user is the creator of the file before showing the delete button -->
-        {% if file.user == request.user %}
+      {% if file.user == request.user %} <!-- If the user is the owner -->
         <form action="{% url 'delete_item' 'file' file.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this file?');" class="d-inline-block ml-4">
             {% csrf_token %}
             <button type="submit" class="btn btn-sm btn-danger">Delete File</button>
         </form>
-        {% endif %}
+      {% else %} <!-- If the user is not the owner -->
+        {% with relation=file.fileuserrelationship_set.get(user=request.user) %}
+          {% if relation.can_delete %} <!-- Check if the shared user has delete permissions -->
+            <form action="{% url 'delete_shared_file' file.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this shared file?');" class="d-inline-block ml-4">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-warning">Delete Shared File</button>
+            </form>
+          {% endif %}
+        {% endwith %}
+      {% endif %}
       </li>
     {% empty %}
       <li class="list-group-item text-muted">No files in this folder.</li>
