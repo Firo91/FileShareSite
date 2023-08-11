@@ -25,6 +25,9 @@
           <li class="list-group-item">
             <div style="display: flex; align-items: center;">
               <a href="{% url 'folder_view' folder.id %}" onclick="openFolderWindow('{% url 'folder_view' folder.id %}')" target="_blank" style="font-size: 20px;">{{ folder.name }}</a>
+              
+              <!-- If the logged-in user is the creator of the folder, show the Delete and Share buttons -->
+              {% if folder.user == request.user %}
               <form method="get" action="{% url 'share_folder' folder.id %}" style="display: inline; margin-left: 20px;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-success btn-sm mr-2">Share</button>
@@ -33,12 +36,22 @@
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
               </form>
+              {% endif %}
+              
+              <!-- If the folder is shared with the logged-in user and they are not the owner, show the Remove Shared Link button -->
+              {% if folder.user != request.user and folder in request.user.shared_folders.all %}
+              <form method="post" action="{% url 'remove_shared_link' folder.id %}" style="display: inline; margin-left: 20px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning btn-sm mr-2">Remove Shared Link</button>
+              </form>
+              {% endif %}
+              
             </div>
           </li>
         {% endif %}
       {% endfor %}
     </ul>
-  </div>
+</div>
 </div>
 
 <div class="row">

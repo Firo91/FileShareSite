@@ -347,3 +347,17 @@ def create_folder(request):
         folder_form = FolderForm()
 
     return render(request, 'file_upload_download.html', {'folder_form': folder_form})
+
+def remove_shared_link(request, folder_id):
+    folder = get_object_or_404(Folder, id=folder_id)
+
+    # Check if the folder is actually shared with the user using the intermediary model
+    relationship = FolderUserRelationship.objects.filter(folder=folder, user=request.user)
+    
+    if relationship.exists():
+        relationship.delete()
+        messages.success(request, "Shared link removed successfully!")
+    else:
+        messages.error(request, "This folder is not shared with you!")
+
+    return redirect('folder_view', folder_id=folder_id)
