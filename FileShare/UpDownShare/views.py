@@ -47,12 +47,18 @@ def file_upload_download(request):
 
     uploaded_files = File.objects.all()
     folders = Folder.objects.all()
+    
+    file_user_relationship = None
+    if file.fileuserrelationship_set.filter(user=request.user).exists():
+        file_user_relationship = file.fileuserrelationship_set.get(user=request.user)
 
     context = {
         'form': form,
         'folder_form': folder_form,
         'uploaded_files': uploaded_files,
-        'folders': folders
+        'folders': folders,
+        'file': file,
+        'file_user_relationship': file_user_relationship,
     }
 
     return render(request, 'file_upload_download.html', context)
