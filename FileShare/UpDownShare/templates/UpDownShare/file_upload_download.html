@@ -35,7 +35,7 @@
               </form>
               {% endif %}
               {% if user == folder.user %}
-                  <a href="{% url 'manage_shared_link' folder.id %}" class="btn btn-primary">Manage Sharing</a>
+                  <button onclick="openFolderWindow('{% url 'manage_shared_link' folder.id %}', '_blank')" class="btn btn-primary">Manage Sharing</button>
               {% endif %}                  
               {% if user in folder.shared_with.all %}
                   <a href="{% url 'remove_my_shared_link' folder.id %}" class="btn btn-danger">Remove My Access</a>
