@@ -34,7 +34,7 @@
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
               </form>
               {% endif %}
-              {% if user == folder.owner %}
+              {% if user == folder.user %}
                   <a href="{% url 'manage_sharing' folder.id %}" class="btn btn-primary">Manage Sharing</a>
               {% endif %}                  
               {% if user in folder.shared_with.all %}
