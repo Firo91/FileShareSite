@@ -16,21 +16,11 @@ import string
 from django.contrib import messages
 import shutil
 import logging
-from django import template
 
 logger = logging.getLogger(__name__)
 
 def home(request):
     return render(request, 'home.html')
-
-register = template.Library()
-
-@register.filter(name='get_file_relationship')
-def get_file_relationship(file_id, user_id):
-    try:
-        return FileUserRelationship.objects.get(file__id=file_id, user__id=user_id)
-    except FileUserRelationship.DoesNotExist:
-        return None
 
 @login_required
 def file_upload_download(request):
