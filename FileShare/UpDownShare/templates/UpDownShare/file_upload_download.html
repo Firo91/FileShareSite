@@ -37,12 +37,14 @@
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
               </form>
               {% endif %}
-              {% if has_folders and user == folder.owner %}
-                  <button onclick="openManageSharingWindow()" class="btn btn-primary">Manage Sharing</button>
-              {% endif %}
+              {% if has_folders and folder %}
+                  {% if user == folder.owner %}
+                      <button onclick="openManageSharingWindow()" class="btn btn-primary">Manage Sharing</button>
+                  {% endif %}
               
-              {% if has_folders and user in folder.shared_with.all %}
-                  <button onclick="openRemoveAccessWindow()" class="btn btn-danger">Remove My Access</button>
+                  {% if user in folder.shared_with.all %}
+                      <button onclick="openRemoveAccessWindow()" class="btn btn-danger">Remove My Access</button>
+                  {% endif %}
               {% endif %}
               
             </div>
@@ -174,18 +176,22 @@
   }
 
   function openManageSharingWindow() {
+    {% if folder %}
     var url = "{% url 'manage_shared_link' folder.id %}";
     openFolderWindow(url);
-  }
+    {% endif %}
+}
 
   function openRemoveAccessWindow() {
     var url = "{% url 'remove_my_shared_link' folder.id %}";
     openFolderWindow(url);
   }
 
-  function submitShareForm() {
-    var url = "{% url 'share_folder' folder.id %}";
+  function openRemoveAccessWindow() {
+    {% if folder %}
+    var url = "{% url 'remove_my_shared_link' folder.id %}";
     openFolderWindow(url);
+    {% endif %}
   }
   
 </script>
