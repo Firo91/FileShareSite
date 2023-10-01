@@ -28,10 +28,15 @@
               
               <!-- If the logged-in user is the creator of the folder, show the Delete and Share buttons -->
               {% if folder.user == request.user %}
-              <form id="shareFolderForm" method="post" action="{% url 'share_folder' folder.id %}" target="_blank" style="display: inline; margin-left: 20px;">
-                {% csrf_token %}
-                <button type="button" class="btn btn-success btn-sm mr-2" onclick="submitShareForm()">Share</button>
-              </form>
+                {% for folder in folders %}
+                    <div class="folder-item">
+                        <span>{{ folder.name }}</span>                       
+                        <form id="shareFolderForm_{{ folder.id }}" method="post" action="{% url 'share_folder' folder.id %}" target="shareWindow" style="display: inline; margin-left: 20px;">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-success btn-sm mr-2" onclick="submitShareForm({{ folder.id }})">Share</button>
+                        </form>
+                    </div>
+                {% endfor %}
               <form action="{% url 'delete_item' 'folder' folder.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this folder?');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
@@ -189,15 +194,18 @@
     {% endif %}
   }
 
-  function submitShareForm() {
+  function submitShareForm(folderId) {
     {% if folder and folder.id %}
-        // open a new window
+        // Assuming that you're passing the folderId as a parameter now
+        var form = document.getElementById("shareFolderForm_" + folderId);
+
+        // Open a new window or tab with the name "shareWindow"
         openFolderWindow("{% url 'share_folder' folder.id %}");
         
-        // submit the form to the new window
-        document.getElementById("shareFolderForm").submit();
+        // Submit the form to that window
+        form.submit();
     {% endif %}
-}
+  }
   
 </script>
 {% endblock %}
