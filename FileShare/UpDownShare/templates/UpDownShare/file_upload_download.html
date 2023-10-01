@@ -190,10 +190,8 @@ function openRemoveAccessWindow() {
 }
 
   function submitShareForm() {
-    {% if folder %}
     var url = "{% url 'share_folder' folder.id %}";
-    openFolderWindow(url);
-    {% endif %}
+    openFolderWindow(url);  
   }
   
 </script>
