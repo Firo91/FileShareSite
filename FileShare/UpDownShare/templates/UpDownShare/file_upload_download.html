@@ -167,33 +167,6 @@
     var windowFeatures = 'width=' + windowWidth + ',height=' + windowHeight;
     window.open(url, '_blank', windowFeatures);
   }
-
-  function openManageSharingWindow() {
-    {% if folder %}
-      var url = "{% url 'manage_shared_link' folder.id %}";
-      openFolderWindow(url);
-    {% endif %}
-  }
-
-  function openRemoveAccessWindow() {
-    {% if folder %}
-      var url = "{% url 'remove_my_shared_link' folder.id %}";
-      openFolderWindow(url);
-    {% endif %}
-  }
-
-  function submitShareForm(folderId) {
-    {% if folder and folder.id %}
-        // Assuming that you're passing the folderId as a parameter now
-        var form = document.getElementById("shareFolderForm_" + folderId);
-
-        // Open a new window or tab with the name "shareWindow"
-        openFolderWindow("{% url 'share_folder' folder.id %}");
-        
-        // Submit the form to that window
-        form.submit();
-    {% endif %}
-  }
   
 </script>
 {% endblock %}
