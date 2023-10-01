@@ -213,7 +213,7 @@ def folder_view(request, folder_id, page=1):
     file_relations = {}
     for file in files:
         try:
-            relation = file.FileUserRelationship_set.get(user=request.user)
+            relation = file.fileuserrelationship_set.get(user=request.user)
             file_relations[file.id] = relation
         except FileUserRelationship.DoesNotExist:
             file_relations[file.id] = None
@@ -342,7 +342,7 @@ def share_file(request, file_id):
     users = CustomUser.objects.all()
 
     # Get the list of users the file is already shared with
-    shared_with = file.FileUserRelationship_set.all().values_list('user__username', flat=True)
+    shared_with = file.fileuserrelationship_set.all().values_list('user__username', flat=True)
 
     context = {
         'file': file,
