@@ -17,17 +17,18 @@
       </form>
   </div>
 
-  {% if messages %}
-    <ul class="messages">
-      {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-  
+
+
   <div class="col-3">
     <h2>Folders</h2>
     <ul class="list-group">
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}
+              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       {% for folder in folders %}
         {% if folder.user == request.user or folder in request.user.shared_folders.all %}
           <li class="list-group-item">
@@ -55,6 +56,8 @@
     </ul>
 </div>
 </div>
+
+
 
 <div class="row">
   <div class="col-4">
