@@ -4,12 +4,13 @@ from django.core.files.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import FileUploadForm, CustomUserCreationForm, CustomPasswordResetForm, FolderUserRelationshipForm, FolderForm
 from .models import File, CustomUser, FileUserRelationship, Folder, FolderUserRelationship
-from django.http import FileResponse, HttpResponseNotAllowed, HttpResponse, HttpResponseRedirect
+from django.http import FileResponse, HttpResponseNotAllowed, HttpResponse, HttpResponseRedirect, Http404
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import  login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 import random
 import string
 from django.contrib import messages
@@ -24,6 +25,9 @@ def home(request):
 @csrf_exempt
 @login_required
 def file_upload_download(request):
+    file = None  # Initialize file to None
+    file_user_relationship = None  # Initialize this to None as well
+
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         folder_form = FolderForm(request.POST)
@@ -47,46 +51,42 @@ def file_upload_download(request):
     uploaded_files = File.objects.all()
     folders = Folder.objects.all()
 
+    # Only try to access file attributes if file exists
+    if file and file.fileuserrelationship_set.filter(user=request.user).exists():
+        file_user_relationship = file.fileuserrelationship_set.get(user=request.user)
+
     context = {
         'form': form,
         'folder_form': folder_form,
         'uploaded_files': uploaded_files,
-        'folders': folders
+        'folders': folders,
+        'file': file,
+        'file_user_relationship': file_user_relationship,
     }
 
     return render(request, 'file_upload_download.html', context)
 
 
 def move_file(request, file_id):
-    file = get_object_or_404(File, pk=file_id)
+    file_instance = get_object_or_404(File, id=file_id)
 
     if request.method == 'POST':
-        folder_id = request.POST.get('folder')
-        folder = get_object_or_404(Folder, id=folder_id)
+        new_folder_id = request.POST.get('folder_id')  # Assuming you send the desired folder's ID in POST data
+        new_folder = get_object_or_404(Folder, id=new_folder_id)
 
-        # Get the current file path
-        current_path = file.file.path
+        # You can add any necessary permission checks here. E.g.:
+        # - Check if the user has the right to move the file
+        # - Check if the user has the right to put files in the destination folder
 
-        # Get the file name and extension
-        file_name = os.path.basename(current_path)
+        file_instance.folder = new_folder  # Update the file's folder reference
+        file_instance.save()
 
-        # Generate the new file path based on the target folder's hierarchy
-        new_folder_path = os.path.join(settings.MEDIA_ROOT, folder.folder_path())
-        new_path = os.path.join(new_folder_path, file_name)
+        # Redirect to the folder view or wherever you want after a successful move
+        return redirect('folder_view', folder_id=new_folder.id)
 
-        # Create the destination folder if it doesn't exist
-        os.makedirs(new_folder_path, exist_ok=True)
-
-        # Move the file on the file system
-        shutil.move(current_path, new_path)
-
-        # Update the file's folder field in the database
-        file.folder = folder
-        file.save()
-
-        return redirect('file_upload_download')
-    else:
-        return HttpResponseNotAllowed(['POST'])
+    # If GET request, you can render a page where the user chooses the destination folder.
+    folders = Folder.objects.filter(user=request.user)  # Show only folders belonging to the user
+    return render(request, 'move_file.html', {'file': file_instance, 'folders': folders})
 
 def folder_hierarchy_path(folder):
     # Recursively traverse the folder hierarchy to determine the path
@@ -98,7 +98,20 @@ def folder_hierarchy_path(folder):
 
 @login_required
 def file_download(request, file_id):
-    uploaded_file = get_object_or_404(File, id=file_id, user=request.user)
+    # Firstly, just get the file without checking the user
+    uploaded_file = get_object_or_404(File, id=file_id)
+    
+    # Check if the file belongs to the current user
+    if uploaded_file.user == request.user:
+        pass
+    # Else, check if the file is inside a shared folder
+    elif uploaded_file.folder and FolderUserRelationship.objects.filter(folder=uploaded_file.folder, user=request.user).exists():
+        pass
+    else:
+        # If neither conditions are met, raise a 404
+        raise Http404("File not found or you don't have the permission to download it.")
+
+    # Continue the download process
     uploaded_file_file = uploaded_file.file
     file_name = uploaded_file_file.name.split('/')[-1]
     response = FileResponse(uploaded_file_file.open(), as_attachment=True, filename=file_name)
@@ -189,16 +202,47 @@ def reset_password(request):
 
 @login_required
 @csrf_exempt
-def folder_view(request, folder_id):
+def folder_view(request, folder_id, page=1):
     folder = get_object_or_404(Folder, id=folder_id)
+    
+    # Permission check
+    if folder.user != request.user and not FolderUserRelationship.objects.filter(folder=folder, user=request.user).exists():
+        messages.error(request, "You do not have permission to view this folder.")
+        return redirect('file_upload_download')
+    
     files = folder.file_set.all()
+
+    # Get the FileUserRelationship objects for each file for the current user
+    file_relations = {}
+    for file in files:
+        try:
+            relation = file.fileuserrelationship_set.get(user=request.user)
+            file_relations[file.id] = relation
+        except FileUserRelationship.DoesNotExist:
+            file_relations[file.id] = None
+
+    # Breadcrumb
+    breadcrumb = get_breadcrumb(folder)
+
+    # Pagination
+    files_per_page = 10
+    paginator = Paginator(files, files_per_page)
+    current_page = paginator.get_page(page)
 
     context = {
         'folder': folder,
-        'files': files
+        'breadcrumb': breadcrumb,
+        'current_page': current_page,
+        'file_relations': file_relations  # Passing the relationships to the template
     }
 
     return render(request, 'folder_view.html', context)
+
+
+def get_breadcrumb(folder):
+    if not folder.parent:
+        return [folder]
+    return get_breadcrumb(folder.parent) + [folder]
 
 @csrf_exempt
 def change_password(request):
@@ -217,81 +261,139 @@ def change_password(request):
 
 @csrf_exempt
 def delete_item(request, item_type, item_id):
-    if item_type == 'file':
-        file = get_object_or_404(File, pk=item_id)
-
-
-        file_path = os.path.join(settings.MEDIA_ROOT, file.file.name)
-        if default_storage.exists(file_path):
-            default_storage.delete(file_path)
-        file.delete()
-
-    if item_type == 'folder':
-        folder = get_object_or_404(Folder, pk=item_id)
-        folder_path = os.path.join(settings.MEDIA_ROOT, folder.name)
-
-        # Delete the associated files within the folder
-        for file in folder.file_set.all():
+    try:
+        if item_type == 'file':
+            file = get_object_or_404(File, pk=item_id)
             file_path = os.path.join(settings.MEDIA_ROOT, file.file.name)
             if default_storage.exists(file_path):
                 default_storage.delete(file_path)
+            file.delete()
+            messages.success(request, "File deleted successfully.")
 
-        # Delete the folder and its contents
-        if os.path.exists(folder_path):
-            logger.info("Folder Path: %s", folder_path)  # Add this line to log the folder path
-            shutil.rmtree(folder_path)
+        elif item_type == 'folder':
+            folder = get_object_or_404(Folder, pk=item_id)
 
+            # Delete the associated files within the folder
+            for file in folder.file_set.all():
+                file_path = os.path.join(settings.MEDIA_ROOT, file.file.name)
+                if default_storage.exists(file_path):
+                    default_storage.delete(file_path)
             
-
-        folder.delete()
+            folder.delete()
+            messages.success(request, "Folder deleted successfully.")
+        else:
+            messages.error(request, "Invalid item type provided.")
+    except Exception as e:
+        logger.error("Error during deletion: %s", str(e))
+        messages.error(request, "An error occurred while trying to delete the item.")
+        
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 @csrf_exempt
 def share_folder(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
+
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         user = get_object_or_404(CustomUser, id=user_id)
-        relationship = FolderUserRelationship.objects.create(
-            folder=folder,
-            user=user,
-        )
-        # Handle success and redirect
+
+        # Check if folder is already shared with this user
+        if FolderUserRelationship.objects.filter(folder=folder, user=user).exists():
+            messages.warning(request, f"Folder is already shared with {user.username}")
+        else:
+            relationship = FolderUserRelationship.objects.create(
+                folder=folder,
+                user=user,
+            )
+            messages.success(request, f"Folder successfully shared with {user.username}")
+
+        return redirect('share_folder', folder_id=folder_id) # Redirecting to the same view to see the messages
 
     users = CustomUser.objects.all()
-    return render(request, 'share_folder.html', {'folder': folder, 'users': users})
 
-@csrf_exempt
+    # Get the list of users the folder is already shared with
+    shared_with = [relation.user.username for relation in FolderUserRelationship.objects.filter(folder=folder)]
+
+    context = {
+        'folder': folder,
+        'users': users,
+        'shared_with': shared_with
+    }
+    return render(request, 'share_folder.html', context)
+
+@login_required
 def share_file(request, file_id):
     file = get_object_or_404(File, id=file_id)
+
+    # Security check to ensure the requester is the owner of the file
+    if file.user != request.user:
+        messages.error(request, "You don't have permission to share this file.")
+        return redirect('file_upload_download')  # Redirect to the main page or an appropriate page
+
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         user = get_object_or_404(CustomUser, id=user_id)
-        relationship = FileUserRelationship.objects.create(
-            file=file,
-            user=user,
-        )
-        # Handle success and redirect
+
+        can_delete = request.POST.get('can_delete') == "true"  # Retrieve the can_delete status from the POST data
+
+        # Check if this file is already shared with this user
+        if not FileUserRelationship.objects.filter(file=file, user=user).exists():
+            FileUserRelationship.objects.create(file=file, user=user, can_delete=can_delete)  # Pass can_delete here
+            messages.success(request, f"File shared with {user.username}.")
+        else:
+            messages.warning(request, f"File is already shared with {user.username}.")
 
     users = CustomUser.objects.all()
-    return render(request, 'share_file.html', {'file': file, 'users': users})
 
-@csrf_exempt
+    # Get the list of users the file is already shared with
+    shared_with = file.fileuserrelationship_set.all().values_list('user__username', flat=True)
+
+    context = {
+        'file': file,
+        'users': users,
+        'shared_with': shared_with
+    }
+
+    return render(request, 'share_file.html', context)
+
+@login_required
 def create_folder(request):
     if request.method == 'POST':
         folder_form = FolderForm(request.POST)
         if folder_form.is_valid():
             folder = folder_form.save(commit=False)
             folder.user = request.user
-
-            # Create the folder on the file system
-            folder_path = os.path.join(settings.MEDIA_ROOT, folder.folder_path())
-            os.makedirs(folder_path, exist_ok=True)
-
             folder.save()
-
             return redirect('folder_view', folder_id=folder.id)
     else:
         folder_form = FolderForm()
 
     return render(request, 'file_upload_download.html', {'folder_form': folder_form})
+
+def remove_shared_link(request, folder_id):
+    folder = get_object_or_404(Folder, id=folder_id)
+
+    # Check if the folder is actually shared with the user using the intermediary model
+    relationship = FolderUserRelationship.objects.filter(folder=folder, user=request.user)
+    
+    if relationship.exists():
+        relationship.delete()
+        messages.success(request, "Shared link removed successfully!")
+    else:
+        messages.error(request, "This folder is not shared with you!")
+
+    return redirect('file_upload_download')
+
+def delete_shared_file(request, file_id):
+    file= get_object_or_404(File, id=file_id)
+    
+    # Check if the user is actually a shared user for this file
+    relationship = FileUserRelationship.objects.filter(file=file, user=request.user).first()
+
+    if relationship:
+        relationship.delete()  # This will remove only the sharing relationship, not the file itself
+        messages.success(request, "Shared file removed successfully from your view.")
+    else:
+        messages.error(request, "This file is not shared with you!")
+    
+    return redirect('file_upload_download')
