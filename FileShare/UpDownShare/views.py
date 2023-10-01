@@ -82,7 +82,7 @@ def move_file(request, file_id):
         file_instance.save()
 
         # Redirect to the folder view or wherever you want after a successful move
-        return redirect('folder_view', folder_id=new_folder.id)
+        return redirect('file_upload_download')
 
     # If GET request, you can render a page where the user chooses the destination folder.
     folders = Folder.objects.filter(user=request.user)  # Show only folders belonging to the user
