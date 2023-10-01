@@ -382,7 +382,7 @@ def manage_shared_link(request, folder_id):
         else:
             messages.error(request, f"This folder is not shared with user {user_id_to_remove}!")
     
-    return render(request, 'manage_shared_link_template.html', {'folder': folder})
+    return render(request, 'manage_shared_link.html', {'folder': folder})
 
 def remove_my_shared_link(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)

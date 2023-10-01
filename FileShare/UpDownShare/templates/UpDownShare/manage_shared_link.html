@@ -1,0 +1,34 @@
+{% extends 'base.html' %}  {# Assuming you have a base template. If not, remove this line. #}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Shared Link for {{ folder.name }}</h2>
+    
+    <p>Here you can manage the sharing permissions for the folder "{{ folder.name }}".</p>
+
+    <div class="mt-4">
+        <h3>Users with access:</h3>
+        <ul>
+            {% for user in folder.shared_with.all %}
+            <li>
+                {{ user.username }} 
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id_to_remove" value="{{ user.id }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Remove Access</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {# Display any messages from the view #}
+    {% if messages %}
+    <div class="mt-4">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
