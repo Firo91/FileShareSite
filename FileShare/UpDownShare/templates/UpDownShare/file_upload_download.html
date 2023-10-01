@@ -177,21 +177,23 @@
 
   function openManageSharingWindow() {
     {% if folder %}
-    var url = "{% url 'manage_shared_link' folder.id %}";
-    openFolderWindow(url);
+      var url = "{% url 'manage_shared_link' folder.id %}";
+      openFolderWindow(url);
     {% endif %}
 }
 
 function openRemoveAccessWindow() {
   {% if folder %}
-  var url = "{% url 'remove_my_shared_link' folder.id %}";
-  openFolderWindow(url);
+    var url = "{% url 'remove_my_shared_link' folder.id %}";
+    openFolderWindow(url);
   {% endif %}
 }
 
   function submitShareForm() {
-    var url = "{% url 'share_folder' folder.id %}";
-    openFolderWindow(url);  
+    {% if folder and folder.id %}
+      var url = "{% url 'share_folder' folder.id %}";
+      openFolderWindow(url);
+    {% endif %}  
   }
   
 </script>
