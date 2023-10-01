@@ -28,15 +28,7 @@
               
               <!-- If the logged-in user is the creator of the folder, show the Delete and Share buttons -->
               {% if folder.user == request.user %}
-                {% for folder in folders %}
-                    <div class="folder-item">
-                        <span>{{ folder.name }}</span>                       
-                        <form id="shareFolderForm_{{ folder.id }}" method="post" action="{% url 'share_folder' folder.id %}" target="shareWindow" style="display: inline; margin-left: 20px;">
-                            {% csrf_token %}
-                            <button type="button" class="btn btn-success btn-sm mr-2" onclick="submitShareForm({{ folder.id }})">Share</button>
-                        </form>
-                    </div>
-                {% endfor %}
+                <button onclick="window.open('{% url 'share_folder' folder.id %}', '_blank')" class="btn btn-success btn-sm mr-2">Share</button>
               <form action="{% url 'delete_item' 'folder' folder.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this folder?');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
