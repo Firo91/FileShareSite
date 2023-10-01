@@ -28,22 +28,18 @@
               
               <!-- If the logged-in user is the creator of the folder, show the Delete and Share buttons -->
               {% if folder.user == request.user %}
-                <button onclick="window.open('{% url 'share_folder' folder.id %}', '_blank')" class="btn btn-success btn-sm mr-2">Share</button>
+                <button onclick="openFolderWindow('{% url 'share_folder' folder.id %}', '_blank')" class="btn btn-success btn-sm mr-2">Share</button>
               <form action="{% url 'delete_item' 'folder' folder.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this folder?');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
               </form>
               {% endif %}
-              {% if has_folders and folder %}
-                  {% if user == folder.owner %}
-                      <button onclick="openManageSharingWindow()" class="btn btn-primary">Manage Sharing</button>
-                  {% endif %}
-              
-                  {% if user in folder.shared_with.all %}
-                      <button onclick="openRemoveAccessWindow()" class="btn btn-danger">Remove My Access</button>
-                  {% endif %}
-              {% endif %}
-              
+              {% if user == folder.owner %}
+                  <a href="{% url 'manage_sharing' folder.id %}" class="btn btn-primary">Manage Sharing</a>
+              {% endif %}                  
+              {% if user in folder.shared_with.all %}
+                  <a href="{% url 'remove_access' folder.id %}" class="btn btn-danger">Remove My Access</a>
+              {% endif %}              
             </div>
           </li>
         {% endif %}
