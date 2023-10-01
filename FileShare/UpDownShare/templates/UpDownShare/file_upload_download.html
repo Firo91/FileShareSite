@@ -28,7 +28,7 @@
               
               <!-- If the logged-in user is the creator of the folder, show the Delete and Share buttons -->
               {% if folder.user == request.user %}
-              <form id="shareFolderForm" method="get" action="{% url 'share_folder' folder.id %}" style="display: inline; margin-left: 20px;">
+              <form id="shareFolderForm" method="post" action="{% url 'share_folder' folder.id %}" style="display: inline; margin-left: 20px;">
                 {% csrf_token %}
                 <button type="button" class="btn btn-success btn-sm mr-2" onclick="submitShareForm()">Share</button>
               </form>
@@ -180,20 +180,19 @@
       var url = "{% url 'manage_shared_link' folder.id %}";
       openFolderWindow(url);
     {% endif %}
-}
+  }
 
-function openRemoveAccessWindow() {
-  {% if folder %}
-    var url = "{% url 'remove_my_shared_link' folder.id %}";
-    openFolderWindow(url);
-  {% endif %}
-}
+  function openRemoveAccessWindow() {
+    {% if folder %}
+      var url = "{% url 'remove_my_shared_link' folder.id %}";
+      openFolderWindow(url);
+    {% endif %}
+  }
 
   function submitShareForm() {
     {% if folder and folder.id %}
-      var url = "{% url 'share_folder' folder.id %}";
-      openFolderWindow(url);
-    {% endif %}  
+        document.getElementById("shareFolderForm").submit();
+    {% endif %}
   }
   
 </script>
