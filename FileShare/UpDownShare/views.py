@@ -360,10 +360,14 @@ def create_folder(request):
             folder = folder_form.save(commit=False)
             folder.user = request.user
             folder.save()
+            
+            # Redirect to the file_upload_download view without folder_id argument
+            return redirect('file_upload_download')
     else:
         folder_form = FolderForm()
 
     return render(request, 'file_upload_download.html', {'folder_form': folder_form})
+
 
 def manage_shared_link(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
