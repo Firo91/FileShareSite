@@ -182,14 +182,16 @@
     {% endif %}
 }
 
-  function openRemoveAccessWindow() {
-    var url = "{% url 'remove_my_shared_link' folder.id %}";
-    openFolderWindow(url);
-  }
+function openRemoveAccessWindow() {
+  {% if folder %}
+  var url = "{% url 'remove_my_shared_link' folder.id %}";
+  openFolderWindow(url);
+  {% endif %}
+}
 
-  function openRemoveAccessWindow() {
+  function submitShareForm() {
     {% if folder %}
-    var url = "{% url 'remove_my_shared_link' folder.id %}";
+    var url = "{% url 'share_folder' folder.id %}";
     openFolderWindow(url);
     {% endif %}
   }
