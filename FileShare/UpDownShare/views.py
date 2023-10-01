@@ -360,7 +360,6 @@ def create_folder(request):
             folder = folder_form.save(commit=False)
             folder.user = request.user
             folder.save()
-            return redirect('folder_view', folder_id=folder.id)
     else:
         folder_form = FolderForm()
 
