@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 def home(request):
     return render(request, 'home.html')
 
-@csrf_exempt
 @login_required
 def file_upload_download(request):
     file = None  # Initialize file to None
@@ -117,7 +116,7 @@ def file_download(request, file_id):
     response = FileResponse(uploaded_file_file.open(), as_attachment=True, filename=file_name)
     return response
 
-@csrf_exempt
+
 def register_user(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -144,7 +143,6 @@ def register_user(request):
     
     return render(request, 'register.html', {'form': form})
 
-@csrf_exempt
 def custom_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -170,7 +168,6 @@ def custom_logout(request):
     logout(request)
     return redirect('home')
 
-@csrf_exempt
 def reset_password(request):
     if request.method == 'POST':
         form = CustomPasswordResetForm(request.POST)
@@ -201,7 +198,6 @@ def reset_password(request):
     return render(request, 'reset_password.html', {'form': form})
 
 @login_required
-@csrf_exempt
 def folder_view(request, folder_id, page=1):
     folder = get_object_or_404(Folder, id=folder_id)
     
@@ -244,7 +240,7 @@ def get_breadcrumb(folder):
         return [folder]
     return get_breadcrumb(folder.parent) + [folder]
 
-@csrf_exempt
+
 def change_password(request):
     if request.method == 'POST':
         form = PasswordChangeForm(user=request.user, data=request.POST)
@@ -259,7 +255,7 @@ def change_password(request):
         form = PasswordChangeForm(user=request.user)
     return render(request, 'change_password.html', {'form': form})
 
-@csrf_exempt
+
 def delete_item(request, item_type, item_id):
     try:
         if item_type == 'file':
@@ -289,7 +285,6 @@ def delete_item(request, item_type, item_id):
         
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-@csrf_exempt
 def share_folder(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
 

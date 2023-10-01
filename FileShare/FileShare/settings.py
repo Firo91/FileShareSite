@@ -64,13 +64,13 @@ MIDDLEWARE = [
 
 AUTH_USER_MODEL = 'UpDownShare.CustomUser'
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 ROOT_URLCONF = 'FileShare.urls'
 
 CSRF_TRUSTED_ORIGINS = [
     'https://ccterminals.applikuapp.com/', 'http://ccterminals.applikuapp.com/'
 ]
-
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 TEMPLATES = [
     {
