@@ -61,6 +61,7 @@ def file_upload_download(request):
         'folders': folders,
         'file': file,
         'file_user_relationship': file_user_relationship,
+        'has_folders': Folder.objects.exists(),
     }
 
     return render(request, 'file_upload_download.html', context)

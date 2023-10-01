@@ -37,12 +37,11 @@
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
               </form>
               {% endif %}
-              {% if user == folder.owner %}
+              {% if has_folders and user == folder.owner %}
                   <button onclick="openManageSharingWindow()" class="btn btn-primary">Manage Sharing</button>
               {% endif %}
               
-              <!-- If the folder is shared with the logged-in user and they are not the owner, show the Remove Shared Link button -->
-              {% if user in folder.shared_with.all %}
+              {% if has_folders and user in folder.shared_with.all %}
                   <button onclick="openRemoveAccessWindow()" class="btn btn-danger">Remove My Access</button>
               {% endif %}
               
