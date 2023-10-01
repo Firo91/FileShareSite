@@ -28,13 +28,17 @@
               
               <!-- If the logged-in user is the creator of the folder, show the Delete and Share buttons -->
               {% if folder.user == request.user %}
-              <form method="get" action="{% url 'share_folder' folder.id %}" style="display: inline; margin-left: 20px;">
+              <form id="shareFolderForm" method="get" action="{% url 'share_folder' folder.id %}" style="display: inline; margin-left: 20px;">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success btn-sm mr-2">Share</button>
+                <button type="button" class="btn btn-success btn-sm mr-2" onclick="submitShareForm()">Share</button>
               </form>
               <form action="{% url 'delete_item' 'folder' folder.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this folder?');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
+              </form>
+              <form method="post" action="{% url 'remove_shared_link' folder.id %}" style="display: inline; margin-left: 20px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning btn-sm mr-2">Remove Shared Link</button>
               </form>
               {% endif %}
               
@@ -172,6 +176,12 @@
     var windowHeight = 400; // Specify the desired height of the new window
     var windowFeatures = 'width=' + windowWidth + ',height=' + windowHeight;
     window.open(url, '_blank', windowFeatures);
+  }
+
+  function submitShareForm() {
+    var form = document.getElementById('shareFolderForm');
+    var actionURL = form.getAttribute('action');
+    openFolderWindow(actionURL);
   }
   
 </script>
