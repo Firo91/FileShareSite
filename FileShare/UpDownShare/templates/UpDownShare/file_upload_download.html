@@ -38,7 +38,7 @@
                   <a href="{% url 'manage_sharing' folder.id %}" class="btn btn-primary">Manage Sharing</a>
               {% endif %}                  
               {% if user in folder.shared_with.all %}
-                  <a href="{% url 'remove_access' folder.id %}" class="btn btn-danger">Remove My Access</a>
+                  <a href="{% url 'remove_my_shared_link' folder.id %}" class="btn btn-danger">Remove My Access</a>
               {% endif %}              
             </div>
           </li>
