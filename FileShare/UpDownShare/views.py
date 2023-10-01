@@ -365,7 +365,25 @@ def create_folder(request):
 
     return render(request, 'file_upload_download.html', {'folder_form': folder_form})
 
-def remove_shared_link(request, folder_id):
+def manage_shared_link(request, folder_id):
+    folder = get_object_or_404(Folder, id=folder_id)
+    
+    if request.method == 'POST' and 'user_id_to_remove' in request.POST:
+        # If posting a user to remove
+        user_id_to_remove = request.POST['user_id_to_remove']
+        
+        # Check if the folder is actually shared with the user using the intermediary model
+        relationship = FolderUserRelationship.objects.filter(folder=folder, user_id=user_id_to_remove)
+
+        if relationship.exists():
+            relationship.delete()
+            messages.success(request, "Shared link removed successfully!")
+        else:
+            messages.error(request, f"This folder is not shared with user {user_id_to_remove}!")
+    
+    return render(request, 'manage_shared_link_template.html', {'folder': folder})
+
+def remove_my_shared_link(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
 
     # Check if the folder is actually shared with the user using the intermediary model
@@ -378,6 +396,8 @@ def remove_shared_link(request, folder_id):
         messages.error(request, "This folder is not shared with you!")
 
     return redirect('file_upload_download')
+
+
 
 def delete_shared_file(request, file_id):
     file= get_object_or_404(File, id=file_id)
