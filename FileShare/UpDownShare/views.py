@@ -8,6 +8,7 @@ from django.http import FileResponse, HttpResponseNotAllowed, HttpResponse, Http
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import  login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.contrib.auth import get_user_model
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
@@ -16,6 +17,7 @@ import string
 from django.contrib import messages
 import shutil
 import logging
+from django.views import View
 import boto3
 from botocore.exceptions import NoCredentialsError
 
@@ -44,6 +46,25 @@ def file_exists_in_s3(bucket_name, file_key):
         return False
     except Exception as e:
         return False
+    
+@method_decorator(login_required, name='dispatch')
+class CheckFileExistenceView(View):
+    def get(self, request, *args, **kwargs):
+        filename = request.GET.get('filename')
+        if filename:
+            # Example logic to check if file exists in S3 bucket
+            s3_client = boto3.client('s3', 
+                                     aws_access_key_id=settings.MEDIA_S3_ACCESS_KEY_ID, 
+                                     aws_secret_access_key=settings.MEDIA_S3_SECRET_ACCESS_KEY)
+            try:
+                s3_client.head_object(Bucket=settings.MEDIA_S3_BUCKET_NAME, Key='main/' + filename)
+                file_exists = True
+            except s3_client.exceptions.ClientError:
+                file_exists = False
+            
+            return JsonResponse({'exists': file_exists})
+        else:
+            return JsonResponse({'error': 'Filename is required'}, status=400)
 
 @login_required
 def file_upload_view(request):
