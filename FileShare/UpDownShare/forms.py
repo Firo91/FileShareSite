@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 
 class FileUploadForm(forms.Form):
-    file = forms.FileField()
+    file = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
     folder = forms.ModelChoiceField(queryset=Folder.objects.all(), required=False)
     
 class FolderForm(forms.ModelForm):

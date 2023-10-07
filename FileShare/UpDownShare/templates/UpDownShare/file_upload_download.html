@@ -67,13 +67,32 @@
       <div class="mb-3">
         {{ form.file.label_tag }}
         {{ form.file }}
+        {{ form.folder.label_tag }}
+        {{ form.folder }}
         <progress id="file-upload-progress" value="0" max="100"></progress>
         <button id="upload-button" type="submit" class="btn btn-primary">Upload</button>
       </div>
     </form>
   </div>
   
-
+  <div class="modal" tabindex="-1" id="conflictModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">File Conflict</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="conflictMessage">A file with this name already exists.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="keepExisting">Keep Existing</button>
+          <button type="button" class="btn btn-warning" id="replaceFile">Replace</button>
+          <button type="button" class="btn btn-primary" id="renameFile">Rename</button>
+        </div>
+      </div>
+    </div>
+  </div>
   
   <div class="col-4">
     <h2>Uploaded Files Not in a Folder</h2>
@@ -132,12 +151,14 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   $(document).ready(function() {
+    var conflictModal = new bootstrap.Modal(document.getElementById('conflictModal'));
+  
     $('#upload-form').submit(function(event) {
       event.preventDefault();
-
+  
       var form = $(this);
       var formData = new FormData(form[0]);
-
+  
       $.ajax({
         url: form.attr('action'),
         type: form.attr('method'),
@@ -156,15 +177,66 @@
         },
         success: function(response) {
           console.log('File uploaded successfully!');
-          // Handle success if needed
+          // You might refresh the page or update the UI here...
         },
-        error: function() {
-          console.error('File upload failed!');
-          // Handle error if needed
+        error: function(jqXHR, textStatus, errorMessage) {
+          if (jqXHR.status === 409) {  // Conflict status
+            // Assuming that your server sends the name of the conflicting file...
+            var conflictingFile = jqXHR.responseJSON.conflicting_file;
+            $('#conflictMessage').text("Conflict with file: " + conflictingFile + ". Choose an action below:");
+            conflictModal.show();
+          } else {
+            console.error('File upload failed!');
+            // You might display a generic error message to the user...
+          }
         }
       });
     });
+  
+    $('#keepExisting').click(function() {
+      // Logic for keeping the existing file could be added here...
+      conflictModal.hide();
+    });
+  
+    $('#replaceFile').click(function() {
+      // To replace the file, you might re-submit the form with an additional parameter...
+      var formData = new FormData($('#upload-form')[0]);
+      formData.append('action', 'replace');  // Add an 'action' parameter to inform the server of the desired action
+      submitFormWithAction(formData);
+      conflictModal.hide();
+    });
+  
+    $('#renameFile').click(function() {
+      // You might prompt the user for a new name, and then re-submit with that name...
+      var newName = prompt("Please enter a new name for the file:");
+      if (newName) {
+        var formData = new FormData($('#upload-form')[0]);
+        formData.append('action', 'rename'); // Add an 'action' parameter
+        formData.append('new_name', newName); // Add the new name
+        submitFormWithAction(formData);
+      }
+      conflictModal.hide();
+    });
+  
+    function submitFormWithAction(formData) {
+      $.ajax({
+        url: $('#upload-form').attr('action'),
+        type: $('#upload-form').attr('method'),
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          console.log('File uploaded successfully after conflict resolution!');
+          // Update UI or redirect user...
+        },
+        error: function() {
+          console.error('File upload failed even after conflict resolution!');
+          // Inform the user of the failure...
+        }
+      });
+    }
   });
+  
 
   function openFolderWindow(url) {
     var windowWidth = 500; // Specify the desired width of the new window

@@ -4,12 +4,12 @@ from django.core.files.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import FileUploadForm, CustomUserCreationForm, CustomPasswordResetForm, FolderUserRelationshipForm, FolderForm
 from .models import File, CustomUser, FileUserRelationship, Folder, FolderUserRelationship
-from django.http import FileResponse, HttpResponseNotAllowed, HttpResponse, HttpResponseRedirect, Http404
+from django.http import FileResponse, HttpResponseNotAllowed, HttpResponse, HttpResponseRedirect, Http404, JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import  login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 import random
 import string
@@ -23,37 +23,81 @@ def home(request):
     return render(request, 'home.html')
 
 @login_required
-def file_upload_download(request):
-    file = None  # Initialize file to None
-    file_user_relationship = None  # Initialize this to None as well
+def file_upload_view(request):
+    # Your initializations...
+    file = None
+    file_user_relationship = None
 
+    # Handling POST request
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         folder_form = FolderForm(request.POST)
-        
+
+        # Handle file upload
         if form.is_valid():
-            uploaded_file = form.cleaned_data['file']
+            uploaded_files = request.FILES.getlist('file')
             folder = form.cleaned_data['folder']
             
-            file = File.objects.create(user=request.user, file=uploaded_file, folder=folder)
+            for uploaded_file in uploaded_files:
+                # Check for file conflict...
+                conflict = File.objects.filter(
+                    user=request.user,
+                    file__filename=uploaded_file.name,
+                    folder=folder
+                ).exists()
+                
+                # If conflict and no resolution action provided, respond with conflict status...
+                if conflict and not request.POST.get('action'):
+                    return JsonResponse(
+                        {'conflicting_file': uploaded_file.name},
+                        status=409  # Conflict
+                    )
+                
+                # Handle conflict resolution action...
+                action = request.POST.get('action')
+                if conflict and action == 'replace':
+                    # Replace the existing file...
+                    File.objects.filter(
+                        user=request.user,
+                        file__filename=uploaded_file.name,
+                        folder=folder
+                    ).delete()
+                    File.objects.create(user=request.user, file=uploaded_file, folder=folder)
+                elif conflict and action == 'rename':
+                    # Rename the uploaded file using request.POST.get('new_name')
+                    new_name = request.POST.get('new_name')
+                    if not new_name:
+                        return HttpResponseBadRequest("New file name is required for rename action")
+                    uploaded_file._name = new_name  # Be careful with modifying private attributes
+                    File.objects.create(user=request.user, file=uploaded_file, folder=folder)
+                elif not conflict:
+                    # Save the uploaded file as is...
+                    File.objects.create(user=request.user, file=uploaded_file, folder=folder)
+                else:
+                    return HttpResponseBadRequest("Invalid action")
+            
             return redirect('file_upload_download')
+        
+        # Handle folder creation
         elif folder_form.is_valid():
             name = folder_form.cleaned_data['name']
             parent_folder = folder_form.cleaned_data['parent_folder']
             
             folder = Folder.objects.create(user=request.user, name=name, parent_folder=parent_folder)
             return redirect('file_upload_download')
+
+    # Handling GET request
     else:
         form = FileUploadForm()
         folder_form = FolderForm()
 
     uploaded_files = File.objects.all()
     folders = Folder.objects.all()
-
+    
     # Only try to access file attributes if file exists
     if file and file.fileuserrelationship_set.filter(user=request.user).exists():
         file_user_relationship = file.fileuserrelationship_set.get(user=request.user)
-
+    
     context = {
         'form': form,
         'folder_form': folder_form,
@@ -235,12 +279,10 @@ def folder_view(request, folder_id, page=1):
 
     return render(request, 'folder_view.html', context)
 
-
 def get_breadcrumb(folder):
     if not folder.parent:
         return [folder]
     return get_breadcrumb(folder.parent) + [folder]
-
 
 def change_password(request):
     if request.method == 'POST':
@@ -255,7 +297,6 @@ def change_password(request):
     else:
         form = PasswordChangeForm(user=request.user)
     return render(request, 'change_password.html', {'form': form})
-
 
 def delete_item(request, item_type, item_id):
     try:
@@ -368,7 +409,6 @@ def create_folder(request):
 
     return render(request, 'file_upload_download.html', {'folder_form': folder_form})
 
-
 def manage_shared_link(request, folder_id):
     folder = get_object_or_404(Folder, id=folder_id)
     
@@ -400,8 +440,6 @@ def remove_my_shared_link(request, folder_id):
         messages.error(request, "This folder is not shared with you!")
 
     return redirect('file_upload_download')
-
-
 
 def delete_shared_file(request, file_id):
     file= get_object_or_404(File, id=file_id)
