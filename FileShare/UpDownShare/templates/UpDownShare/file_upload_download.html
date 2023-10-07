@@ -131,90 +131,47 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+  $(document).ready(function() {
+    $('#upload-form').submit(function(event) {
+      event.preventDefault();
+
+      var form = $(this);
+      var formData = new FormData(form[0]);
+
+      $.ajax({
+        url: form.attr('action'),
+        type: form.attr('method'),
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhr: function() {
+          var xhr = new window.XMLHttpRequest();
+          xhr.upload.addEventListener('progress', function(evt) {
+            if (evt.lengthComputable) {
+              var percentComplete = (evt.loaded / evt.total) * 100;
+              $('#file-upload-progress').attr('value', percentComplete);
+            }
+          }, false);
+          return xhr;
+        },
+        success: function(response) {
+          console.log('File uploaded successfully!');
+          // Handle success if needed
+        },
+        error: function() {
+          console.error('File upload failed!');
+          // Handle error if needed
+        }
+      });
+    });
+  });
+
   function openFolderWindow(url) {
     var windowWidth = 500; // Specify the desired width of the new window
     var windowHeight = 400; // Specify the desired height of the new window
     var windowFeatures = 'width=' + windowWidth + ',height=' + windowHeight;
     window.open(url, '_blank', windowFeatures);
   }
-
-  $(document).ready(function() {
-    var conflictModal = new bootstrap.Modal(document.getElementById('conflictModal'));
-  
-    $('#upload-form').submit(function(event) {
-      event.preventDefault();
-  
-      var form = $(this);
-      var formData = new FormData(form[0]);
-      
-      // Step 1: Check if file already exists on the server
-      var filename = formData.get('file').name; // Assuming 'file' is the name attribute in your file input
-      $.ajax({
-        url: '/check_file_existence/', // Update with your actual endpoint
-        type: 'GET',
-        data: {filename: filename},
-        success: function(response) {
-          if (response.exists) {
-            // Conflict detected, inform the user and display the modal
-            $('#conflictMessage').text("Conflict with file: " + filename + ". Choose an action below:");
-            conflictModal.show();
-          } else {
-            // No conflict, proceed with the upload
-            uploadFile(formData);
-          }
-        },
-        error: function() {
-          console.error('Error checking file existence');
-          // Decide how to handle this error. E.g., inform the user, retry, etc.
-        }
-      });
-    });
-  
-    $('#keepExisting').click(function() {
-      // Logic for keeping the existing file could be added here...
-      conflictModal.hide();
-    });
-  
-    $('#replaceFile').click(function() {
-      // To replace the file, you might re-submit the form with an additional parameter...
-      var formData = new FormData($('#upload-form')[0]);
-      formData.append('action', 'replace');  // Add an 'action' parameter to inform the server of the desired action
-      submitFormWithAction(formData);
-      conflictModal.hide();
-    });
-  
-    $('#renameFile').click(function() {
-      // You might prompt the user for a new name, and then re-submit with that name...
-      var newName = prompt("Please enter a new name for the file:");
-      if (newName) {
-        var formData = new FormData($('#upload-form')[0]);
-        formData.append('action', 'rename'); // Add an 'action' parameter
-        formData.append('new_name', newName); // Add the new name
-        submitFormWithAction(formData);
-      }
-      conflictModal.hide();
-    });
-  
-    function uploadFile(formData) {
-      $.ajax({
-        url: $('#upload-form').attr('action'),
-        type: $('#upload-form').attr('method'),
-        data: formData,
-        processData: false,
-        contentType: false,
-        xhr: function() {
-          // Your existing xhr logic...
-        },
-        success: function(response) {
-          console.log('File uploaded successfully!');
-          // Your existing success logic...
-        },
-        error: function(jqXHR, textStatus, errorMessage) {
-          console.error('File upload failed!');
-          // Your existing error logic...
-        }
-      });
-    }
   
 </script>
 {% endblock %}

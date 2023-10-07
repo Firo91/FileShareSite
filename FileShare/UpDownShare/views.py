@@ -25,81 +25,36 @@ def home(request):
 
 @login_required
 def file_upload_view(request):
-    # Your initializations...
-    file = None
-    file_user_relationship = None
+    file = None  # Initialize file to None
+    file_user_relationship = None  # Initialize this to None as well
 
-    # Handling POST request
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         folder_form = FolderForm(request.POST)
-
-        # Handle file upload
+        
         if form.is_valid():
-            uploaded_files = request.FILES.getlist('file')
+            uploaded_file = form.cleaned_data['file']
             folder = form.cleaned_data['folder']
             
-            for uploaded_file in uploaded_files:
-                # Check for file conflict...
-                conflict = File.objects.filter(
-                    user=request.user,
-                    file=uploaded_file.name,
-                    folder=folder
-                ).exists()
-                
-                # If conflict and no resolution action provided, respond with conflict status...
-                file_key = f"private/{uploaded_file.name}"  # Build the file key as per your S3 structure
-                if file_exists_in_s3(settings.MEDIA_S3_BUCKET_NAME, file_key) and not request.POST.get('action'):
-                    return JsonResponse(
-                        {'conflicting_file': uploaded_file.name},
-                        status=409  # Conflict
-                    )
-                
-                # Handle conflict resolution action...
-                action = request.POST.get('action')
-                if conflict and action == 'replace':
-                    # Replace the existing file...
-                    File.objects.filter(
-                        user=request.user,
-                        file=uploaded_file.name,
-                        folder=folder
-                    ).delete()
-                    File.objects.create(user=request.user, file=uploaded_file, folder=folder)
-                elif conflict and action == 'rename':
-                    # Rename the uploaded file using request.POST.get('new_name')
-                    new_name = request.POST.get('new_name')
-                    if not new_name:
-                        return HttpResponseBadRequest("New file name is required for rename action")
-                    uploaded_file._name = new_name  # Be careful with modifying private attributes
-                    File.objects.create(user=request.user, file=uploaded_file, folder=folder)
-                elif not conflict:
-                    # Save the uploaded file as is...
-                    File.objects.create(user=request.user, file=uploaded_file, folder=folder)
-                else:
-                    return HttpResponseBadRequest("Invalid action")
-            
-            return JsonResponse({'message': 'File uploaded successfully.'}, status=200)
-        
-        # Handle folder creation
+            file = File.objects.create(user=request.user, file=uploaded_file, folder=folder)
+            return redirect('file_upload_download')
         elif folder_form.is_valid():
             name = folder_form.cleaned_data['name']
             parent_folder = folder_form.cleaned_data['parent_folder']
             
             folder = Folder.objects.create(user=request.user, name=name, parent_folder=parent_folder)
             return redirect('file_upload_download')
-
-    # Handling GET request
     else:
         form = FileUploadForm()
         folder_form = FolderForm()
 
     uploaded_files = File.objects.all()
     folders = Folder.objects.all()
-    
+
     # Only try to access file attributes if file exists
     if file and file.fileuserrelationship_set.filter(user=request.user).exists():
         file_user_relationship = file.fileuserrelationship_set.get(user=request.user)
-    
+
     context = {
         'form': form,
         'folder_form': folder_form,
