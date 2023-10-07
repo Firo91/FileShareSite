@@ -33,11 +33,12 @@ def file_upload_view(request):
         folder_form = FolderForm(request.POST)
         
         if form.is_valid():
-            uploaded_file = form.cleaned_data['file']
+            uploaded_files = request.FILES.getlist('file')  # Notice the change from request.FILES['file'] to getlist
             folder = form.cleaned_data['folder']
-            
-            file = File.objects.create(user=request.user, file=uploaded_file, folder=folder)
+            for uploaded_file in uploaded_files:
+                File.objects.create(user=request.user, file=uploaded_file, folder=folder)
             return redirect('file_upload_download')
+            
         elif folder_form.is_valid():
             name = folder_form.cleaned_data['name']
             parent_folder = folder_form.cleaned_data['parent_folder']
