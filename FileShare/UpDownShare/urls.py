@@ -22,7 +22,5 @@ urlpatterns = [
     path('create_folder/', views.create_folder, name='create_folder'),
     path('manage_shared_link/<int:folder_id>/', views.manage_shared_link, name='manage_shared_link'),
     path('remove_my_shared_link/<int:folder_id>/', views.remove_my_shared_link, name='remove_my_shared_link'),
-    path('check_file_existence/', views. CheckFileExistenceView.as_view(), name='check_file_existence'),
-
     # ...
 ]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
