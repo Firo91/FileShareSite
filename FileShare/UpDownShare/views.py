@@ -16,11 +16,34 @@ import string
 from django.contrib import messages
 import shutil
 import logging
+import boto3
+from botocore.exceptions import NoCredentialsError
 
 logger = logging.getLogger(__name__)
 
 def home(request):
     return render(request, 'home.html')
+
+def file_exists_in_s3(bucket_name, file_key):
+    """
+    Check if specified file exists in given S3 bucket.
+    
+    Parameters:
+    - bucket_name (str): Name of the S3 bucket
+    - file_key (str): Key of the file to check
+    
+    Returns:
+    - bool: True if file exists, False otherwise
+    """
+    s3 = boto3.client('s3')
+    try:
+        s3.head_object(Bucket=bucket_name, Key=file_key)
+        return True
+    except NoCredentialsError:
+        print("Credentials not available")
+        return False
+    except Exception as e:
+        return False
 
 @login_required
 def file_upload_view(request):
