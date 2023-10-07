@@ -76,7 +76,7 @@ def file_upload_view(request):
                 else:
                     return HttpResponseBadRequest("Invalid action")
             
-            return redirect('file_upload_download')
+            return JsonResponse({'message': 'File uploaded successfully.'}, status=200)
         
         # Handle folder creation
         elif folder_form.is_valid():
