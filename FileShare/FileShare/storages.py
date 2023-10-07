@@ -10,7 +10,7 @@ class StaticStorage(CompressedManifestStaticFilesStorage):
 class PublicMediaStorage(S3Boto3Storage):
     location = 'media'
     default_acl = 'public-read'
-    file_overwrite = False
+    file_overwrite = True
     access_key = settings.MEDIA_S3_ACCESS_KEY_ID
     secret_key = settings.MEDIA_S3_SECRET_ACCESS_KEY
     bucket_name = settings.MEDIA_S3_BUCKET_NAME
@@ -21,7 +21,7 @@ class PublicMediaStorage(S3Boto3Storage):
 class PrivateMediaStorage(S3Boto3Storage):
     location = 'private'
     default_acl = 'private'
-    file_overwrite = False
+    file_overwrite = True
     access_key = settings.MEDIA_S3_ACCESS_KEY_ID
     secret_key = settings.MEDIA_S3_SECRET_ACCESS_KEY
     bucket_name = settings.MEDIA_S3_BUCKET_NAME
