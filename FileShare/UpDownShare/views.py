@@ -71,7 +71,7 @@ def file_upload_view(request):
                 
                 # If conflict and no resolution action provided, respond with conflict status...
                 file_key = f"private/{uploaded_file.name}"  # Build the file key as per your S3 structure
-                if file_exists_in_s3(settings.AWS_STORAGE_BUCKET_NAME, file_key) and not request.POST.get('action'):
+                if file_exists_in_s3(settings.MEDIA_S3_BUCKET_NAME, file_key) and not request.POST.get('action'):
                     return JsonResponse(
                         {'conflicting_file': uploaded_file.name},
                         status=409  # Conflict
