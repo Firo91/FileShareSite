@@ -42,7 +42,7 @@ def file_upload_view(request):
                 # Check for file conflict...
                 conflict = File.objects.filter(
                     user=request.user,
-                    file__filename=uploaded_file.name,
+                    file=uploaded_file.name,
                     folder=folder
                 ).exists()
                 
@@ -59,7 +59,7 @@ def file_upload_view(request):
                     # Replace the existing file...
                     File.objects.filter(
                         user=request.user,
-                        file__filename=uploaded_file.name,
+                        file=uploaded_file.name,
                         folder=folder
                     ).delete()
                     File.objects.create(user=request.user, file=uploaded_file, folder=folder)
