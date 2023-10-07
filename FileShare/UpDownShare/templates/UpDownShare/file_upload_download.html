@@ -150,6 +150,13 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+  function openFolderWindow(url) {
+    var windowWidth = 500; // Specify the desired width of the new window
+    var windowHeight = 400; // Specify the desired height of the new window
+    var windowFeatures = 'width=' + windowWidth + ',height=' + windowHeight;
+    window.open(url, '_blank', windowFeatures);
+  }
+
   $(document).ready(function() {
     var conflictModal = new bootstrap.Modal(document.getElementById('conflictModal'));
   
@@ -227,14 +234,6 @@
         }
       });
     }
-  
-
-  function openFolderWindow(url) {
-    var windowWidth = 500; // Specify the desired width of the new window
-    var windowHeight = 400; // Specify the desired height of the new window
-    var windowFeatures = 'width=' + windowWidth + ',height=' + windowHeight;
-    window.open(url, '_blank', windowFeatures);
-  }
   
 </script>
 {% endblock %}
